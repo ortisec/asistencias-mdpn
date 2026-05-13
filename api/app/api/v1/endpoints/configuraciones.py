@@ -8,13 +8,16 @@ from app.crud import crud_configuracion as crud
 router = APIRouter()
 
 # --- RUTAS DE HORARIOS ---
-@router.get("/horarios", response_model=schemas.ConfiguracionHorario)
+@router.get("/horarios", response_model=List[schemas.ConfiguracionHorario])
 def obtener_horarios(db: Session = Depends(get_db)):
-    return crud.get_configuracion(db)
+    return crud.get_horarios(db)
 
-@router.put("/horarios", response_model=schemas.ConfiguracionHorario)
-def actualizar_horarios(config_in: schemas.ConfiguracionHorarioUpdate, db: Session = Depends(get_db)):
-    return crud.update_configuracion(db, config_in=config_in)
+@router.put("/horarios/{regimen}", response_model=schemas.ConfiguracionHorario)
+def actualizar_horario_regimen(regimen: int, config_in: schemas.ConfiguracionHorarioUpdate, db: Session = Depends(get_db)):
+    horario_actualizado = crud.update_horario_regimen(db, regimen=regimen, config_in=config_in)
+    if not horario_actualizado:
+        raise HTTPException(status_code=404, detail=f"No se encontró configuración para el régimen {regimen}")
+    return horario_actualizado
 
 # --- RUTAS DE FERIADOS ---
 @router.get("/feriados", response_model=List[schemas.Feriado])

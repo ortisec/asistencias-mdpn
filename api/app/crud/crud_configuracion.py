@@ -4,33 +4,38 @@ from app.models.configuracion import ConfiguracionHorario, Feriado
 from app.schemas.configuracion import ConfiguracionHorarioUpdate, FeriadoCreate
 
 # --- CRUD HORARIOS ---
-def get_configuracion(db: Session):
-    config = db.query(ConfiguracionHorario).first()
-    if not config:
-        # Si la base de datos está vacía, creamos la configuración por defecto
-        config = ConfiguracionHorario(
-            hora_ingreso_manana=time(8, 0),
-            minutos_tolerancia_manana=15,
-            hora_salida_manana=time(13, 0),
-            hora_ingreso_tarde=time(14, 0),
-            minutos_tolerancia_tarde=15,
-            hora_salida_tarde=time(17, 0)
-        )
-        db.add(config)
-        db.commit()
-        db.refresh(config)
-    return config
-
-def update_configuracion(db: Session, config_in: ConfiguracionHorarioUpdate):
-    config = get_configuracion(db) # Obtenemos la única fila
+def get_horarios(db: Session):
+    horarios = db.query(ConfiguracionHorario).all()
     
-    update_data = config_in.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(config, key, value)
+    # Si la tabla está vacía, creamos los 3 regímenes por defecto
+    if not horarios:
+        regimenes_default = [1057, 728, 276]
+        for reg in regimenes_default:
+            nuevo_horario = ConfiguracionHorario(
+                regimen=reg,
+                es_horario_partido=True, # Por defecto todos empiezan en partido
+                hora_ingreso_manana=time(8, 0),
+                minutos_tolerancia_manana=15,
+                hora_salida_manana=time(13, 0),
+                hora_ingreso_tarde=time(14, 0),
+                minutos_tolerancia_tarde=15,
+                hora_salida_tarde=time(17, 0)
+            )
+            db.add(nuevo_horario)
+        db.commit()
+        horarios = db.query(ConfiguracionHorario).all()
         
-    db.commit()
-    db.refresh(config)
-    return config
+    return horarios
+
+def update_horario_regimen(db: Session, regimen: int, config_in: ConfiguracionHorarioUpdate):
+    horario = db.query(ConfiguracionHorario).filter(ConfiguracionHorario.regimen == regimen).first()
+    if horario:
+        update_data = config_in.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(horario, key, value)
+        db.commit()
+        db.refresh(horario)
+    return horario
 
 # --- CRUD FERIADOS ---
 def get_feriados(db: Session):
