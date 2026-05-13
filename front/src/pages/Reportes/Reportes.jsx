@@ -11,13 +11,13 @@ import TablaHistorial from './TablaHistorial';
 import TablaRanking from './TablaRanking';
 
 export default function Reportes() {
-  const [activeTab, setActiveTab] = useState('diario'); 
-  
+  const [activeTab, setActiveTab] = useState('diario');
+
   // Guardamos los datos puros para poder recalcular la matemática cuando cambien las fechas
   const [rawAsistencias, setRawAsistencias] = useState([]);
   const [rawFeriados, setRawFeriados] = useState([]);
   const [listaPersonas, setListaPersonas] = useState([]);
-  
+
   const [reporteDatos, setReporteDatos] = useState([]); // Historial ya procesado
   const [loading, setLoading] = useState(true);
 
@@ -50,12 +50,22 @@ export default function Reportes() {
 
       const datosFusionados = asistenciasData.map(asistencia => {
         const persona = personasDiccionario[asistencia.persona_id];
-        const analisis = analizarAsistencia(asistencia.fecha_ingreso, asistencia.fecha_salida, horariosData, feriadosSet);
+
+        // AQUÍ EL CAMBIO: Le pasamos el tipo_trabajador (régimen) al cerebro matemático
+        const analisis = analizarAsistencia(
+          asistencia.fecha_ingreso,
+          asistencia.fecha_salida,
+          horariosData,
+          feriadosSet,
+          persona ? persona.tipo_trabajador : 1057
+        );
+
         return {
           id_asistencia: asistencia.id, dni: persona ? persona.dni : 'Desconocido', nombre_completo: persona ? persona.nombre_completo : 'Desconocido',
           regimen: persona ? persona.tipo_trabajador : 'N/A', fecha_ingreso: asistencia.fecha_ingreso, fecha_salida: asistencia.fecha_salida, ...analisis
         };
       });
+      
       setReporteDatos(datosFusionados.sort((a, b) => b.id_asistencia - a.id_asistencia));
 
     } catch (err) {
@@ -104,7 +114,7 @@ export default function Reportes() {
 
   return (
     <div className="space-y-6 relative">
-      
+
       {/* --- MODAL (Igual que antes) --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -158,23 +168,23 @@ export default function Reportes() {
       <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-700 animate-in fade-in duration-300">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
           <div className="md:col-span-1 flex flex-col space-y-2">
-             <label className="text-sm font-medium text-gray-300">Personal Específico</label>
-             <button onClick={abrirModal} className="w-full flex items-center justify-between bg-gray-900 border border-gray-600 hover:border-blue-500 text-left px-4 py-2.5 rounded-lg transition-colors">
-                <span className={filtros.personasSeleccionadas.length > 0 ? "text-blue-400 font-semibold" : "text-gray-400"}>
-                  {filtros.personasSeleccionadas.length === 0 ? "Todo el personal" : `${filtros.personasSeleccionadas.length} seleccionados`}
-                </span>
-             </button>
-             {filtros.personasSeleccionadas.length > 0 && <button onClick={() => setFiltros({...filtros, personasSeleccionadas: []})} className="text-xs text-red-400 hover:underline text-left">Borrar selección</button>}
+            <label className="text-sm font-medium text-gray-300">Personal Específico</label>
+            <button onClick={abrirModal} className="w-full flex items-center justify-between bg-gray-900 border border-gray-600 hover:border-blue-500 text-left px-4 py-2.5 rounded-lg transition-colors">
+              <span className={filtros.personasSeleccionadas.length > 0 ? "text-blue-400 font-semibold" : "text-gray-400"}>
+                {filtros.personasSeleccionadas.length === 0 ? "Todo el personal" : `${filtros.personasSeleccionadas.length} seleccionados`}
+              </span>
+            </button>
+            {filtros.personasSeleccionadas.length > 0 && <button onClick={() => setFiltros({ ...filtros, personasSeleccionadas: [] })} className="text-xs text-red-400 hover:underline text-left">Borrar selección</button>}
           </div>
           <div className="md:col-span-1 flex flex-col space-y-2">
             <label className="text-sm font-medium text-gray-300">Filtrar por Regímenes</label>
             <div className="flex flex-wrap gap-2">
-              {[ { id: '1057', nombre: 'CAS 1057' }, { id: '728', nombre: 'D.L. 728' }, { id: '276', nombre: 'D.L. 276' } ].map((reg) => (
+              {[{ id: '1057', nombre: 'CAS 1057' }, { id: '728', nombre: 'D.L. 728' }, { id: '276', nombre: 'D.L. 276' }].map((reg) => (
                 <button key={reg.id} type="button" onClick={() => handleRegimenToggle(reg.id)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border ${filtros.regimenes.includes(reg.id) ? 'bg-blue-600/20 text-blue-400 border-blue-500/50' : 'bg-gray-900/50 text-gray-400 border-gray-700'}`}>{reg.nombre}</button>
               ))}
             </div>
           </div>
-          
+
           <div className="md:col-span-1"><Input label="Desde (Cálculo Inicia)" id="fechaInicio" type="date" value={filtros.fechaInicio} onChange={handleFiltroChange} /></div>
           <div className="md:col-span-1"><Input label="Hasta (Cálculo Finaliza)" id="fechaFin" type="date" value={filtros.fechaFin} onChange={handleFiltroChange} /></div>
         </div>
@@ -182,7 +192,7 @@ export default function Reportes() {
 
       {/* --- RENDERIZADO DINÁMICO DE PESTAÑAS --- */}
       <div className="bg-gray-800 rounded-lg shadow overflow-x-auto border border-gray-700 mt-6">
-        {activeTab === 'diario' 
+        {activeTab === 'diario'
           ? <TablaHistorial datosFiltrados={datosFiltrados} loading={loading} />
           : <TablaRanking rankingDatos={rankingFiltrado} loading={loading} />
         }

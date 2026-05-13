@@ -14,31 +14,45 @@ export const getColorTurno = (turno) => {
   return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
 };
 
-export const analizarAsistencia = (ingresoISO, salidaISO, horariosConfig, feriadosSet) => {
-  if (!ingresoISO) return { turno: '---', minutos_tardanza: 0, tiempoTrabajado: '---', es_feriado: false };
+export const analizarAsistencia = (ingresoISO, salidaISO, horariosConfigArray, feriadosSet, regimenEmpleado) => {
+  // 1. CORREGIDO: tiempo_trabajado con guion bajo
+  if (!ingresoISO) return { turno: '---', minutos_tardanza: 0, tiempo_trabajado: '---', es_feriado: false };
   const ingreso = new Date(ingresoISO);
   const hora = ingreso.getHours();
-  const tiempoEnMinutos = hora * 60 + ingreso.getMinutes(); 
-  const fechaSoloDia = ingresoISO.split('T')[0]; 
+  const tiempoEnMinutos = hora * 60 + ingreso.getMinutes();
+  const fechaSoloDia = ingresoISO.split('T')[0];
   const es_feriado = feriadosSet.has(fechaSoloDia);
 
-  let turno = ''; let minutos_tardanza = 0; let tiempoTrabajado = 'En curso';
+  // 2. CORREGIDO: tiempo_trabajado con guion bajo
+  let turno = ''; let minutos_tardanza = 0; let tiempo_trabajado = 'En curso';
 
   const timeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
     const [h, m] = timeStr.split(':').map(Number);
     return h * 60 + m;
   };
 
-  if (hora < 13) {
-    turno = 'Mañana';
-    const meta = timeToMinutes(horariosConfig.hora_ingreso_manana);
-    const tolerancia = horariosConfig.minutos_tolerancia_manana;
-    if (!es_feriado && tiempoEnMinutos > (meta + tolerancia)) minutos_tardanza = tiempoEnMinutos - meta;
+  const config = horariosConfigArray.find(h => h.regimen === Number(regimenEmpleado)) || horariosConfigArray[0];
+
+  if (!config.es_horario_partido) {
+    turno = 'Turno Único';
+    const meta = timeToMinutes(config.hora_ingreso_manana);
+    const tolerancia = config.minutos_tolerancia_manana;
+    if (!es_feriado && tiempoEnMinutos > (meta + tolerancia)) {
+      minutos_tardanza = tiempoEnMinutos - meta;
+    }
   } else {
-    turno = 'Tarde';
-    const meta = timeToMinutes(horariosConfig.hora_ingreso_tarde);
-    const tolerancia = horariosConfig.minutos_tolerancia_tarde;
-    if (!es_feriado && tiempoEnMinutos > (meta + tolerancia)) minutos_tardanza = tiempoEnMinutos - meta;
+    if (hora < 13) {
+      turno = 'Mañana';
+      const meta = timeToMinutes(config.hora_ingreso_manana);
+      const tolerancia = config.minutos_tolerancia_manana;
+      if (!es_feriado && tiempoEnMinutos > (meta + tolerancia)) minutos_tardanza = tiempoEnMinutos - meta;
+    } else {
+      turno = 'Tarde';
+      const meta = timeToMinutes(config.hora_ingreso_tarde);
+      const tolerancia = config.minutos_tolerancia_tarde;
+      if (!es_feriado && tiempoEnMinutos > (meta + tolerancia)) minutos_tardanza = tiempoEnMinutos - meta;
+    }
   }
 
   if (salidaISO) {
@@ -46,9 +60,12 @@ export const analizarAsistencia = (ingresoISO, salidaISO, horariosConfig, feriad
     const diferenciaMs = salida - ingreso;
     const horasTrabajadas = Math.floor(diferenciaMs / (1000 * 60 * 60));
     const minutosTrabajados = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));
-    tiempoTrabajado = `${horasTrabajadas}h ${minutosTrabajados}m`;
+    // 3. CORREGIDO: tiempo_trabajado con guion bajo
+    tiempo_trabajado = `${horasTrabajadas}h ${minutosTrabajados}m`;
   }
-  return { turno, minutos_tardanza, tiempoTrabajado, es_feriado };
+
+  // 4. CORREGIDO: Retornamos con guion bajo
+  return { turno, minutos_tardanza, tiempo_trabajado, es_feriado };
 };
 
 export const calcularRanking = (personasData, asistenciasData, feriadosSet, fechaInicioFiltro, fechaFinFiltro) => {
@@ -58,7 +75,7 @@ export const calcularRanking = (personasData, asistenciasData, feriadosSet, fech
   // Convertimos las fechas del filtro a objetos Date (si existen)
   const fInicioRango = fechaInicioFiltro ? new Date(`${fechaInicioFiltro}T00:00:00`) : null;
   const fFinRango = fechaFinFiltro ? new Date(`${fechaFinFiltro}T00:00:00`) : hoy;
-  
+
   // No podemos calcular faltas en el futuro, así que el tope máximo es hoy
   if (fFinRango > hoy) fFinRango.setTime(hoy.getTime());
 
@@ -69,7 +86,7 @@ export const calcularRanking = (personasData, asistenciasData, feriadosSet, fech
       let diasAsistidos = 0;
       let fechasFaltas = [];
 
-      const diasLaborables = persona.dias_laborables ? persona.dias_laborables.split(',').map(Number) : [1,2,3,4,5];
+      const diasLaborables = persona.dias_laborables ? persona.dias_laborables.split(',').map(Number) : [1, 2, 3, 4, 5];
       const fechaInicioContrato = new Date(`${persona.fecha_inicio_labores}T00:00:00`);
 
       // La fecha de inicio del cálculo será la mayor entre su inicio de contrato y el filtro que puso RR.HH.
@@ -83,13 +100,13 @@ export const calcularRanking = (personasData, asistenciasData, feriadosSet, fech
 
       // Recorremos el calendario solo en el rango solicitado
       for (let d = new Date(fechaArranqueMatematico); d <= fFinRango; d.setDate(d.getDate() + 1)) {
-        const dayOfWeek = d.getDay(); 
+        const dayOfWeek = d.getDay();
         const dateStr = d.toISOString().split('T')[0];
 
         if (diasLaborables.includes(dayOfWeek) && !feriadosSet.has(dateStr)) {
           diasEsperados++;
           if (fechasAsistidas.has(dateStr)) diasAsistidos++;
-          else fechasFaltas.push(dateStr); 
+          else fechasFaltas.push(dateStr);
         }
       }
 
