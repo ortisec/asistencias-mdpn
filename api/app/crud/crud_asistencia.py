@@ -28,3 +28,12 @@ def marcar_salida(db: Session, asistencia_id: int):
         db.refresh(db_asistencia)
         
     return db_asistencia
+
+def update_asistencia_manual(db: Session, asistencia_id: int, datos_actualizar: dict):
+    db_asistencia = db.query(Asistencia).filter(Asistencia.id == asistencia_id).first()
+    if db_asistencia:
+        for key, value in datos_actualizar.items():
+            setattr(db_asistencia, key, value)
+        db.commit()
+        db.refresh(db_asistencia)
+    return db_asistencia
