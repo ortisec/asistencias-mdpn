@@ -12,28 +12,19 @@ def get_personas(db: Session):
     return db.query(Persona).all()
 
 def crear_persona(db: Session, persona: PersonaCreate):
-    # --- AGREGAMOS EL NUEVO CAMPO AQUÍ ---
     db_persona = Persona(
         dni=persona.dni, 
         nombre_completo=persona.nombre_completo,
-        tipo_trabajador=persona.tipo_trabajador 
+        tipo_trabajador=persona.tipo_trabajador,
+        is_active=persona.is_active,
+        fecha_inicio_labores=persona.fecha_inicio_labores,
+        dias_laborables=persona.dias_laborables
     )
     db.add(db_persona)
     db.commit()
     db.refresh(db_persona)
     return db_persona
 
-def crear_persona(db: Session, persona: PersonaCreate):
-    db_persona = Persona(
-        dni=persona.dni, 
-        nombre_completo=persona.nombre_completo,
-        tipo_trabajador=persona.tipo_trabajador,
-        is_active=persona.is_active # Agregado
-    )
-    db.add(db_persona)
-    db.commit()
-    db.refresh(db_persona)
-    return db_persona
 
 # --- NUEVA FUNCIÓN PARA ACTUALIZAR ---
 def update_persona(db: Session, persona_id: int, persona_data: PersonaUpdate):

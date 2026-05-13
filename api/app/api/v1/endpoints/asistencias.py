@@ -29,3 +29,11 @@ def registrar_salida(asistencia_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Asistencia no encontrada o ya fue cerrada")
         
     return db_asistencia
+
+@router.put("/{asistencia_id}", response_model=schemas.Asistencia)
+def editar_asistencia_admin(asistencia_id: int, asistencia_in: schemas.AsistenciaUpdate, db: Session = Depends(get_db)):
+    # exclude_unset=True evita que los campos vacíos (None) borren los datos existentes
+    asistencia_actualizada = crud_asis.update_asistencia_manual(db, asistencia_id, asistencia_in.model_dump(exclude_unset=True))
+    if not asistencia_actualizada:
+        raise HTTPException(status_code=404, detail="Asistencia no encontrada")
+    return asistencia_actualizada

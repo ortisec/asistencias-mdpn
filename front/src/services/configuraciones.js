@@ -3,11 +3,12 @@ import { api } from './api';
 // --- HORARIOS ---
 export const getHorarios = async () => {
   const response = await api.get('/configuraciones/horarios');
-  return response.data;
+  return response.data; // Ahora esto devuelve un Array con los 3 regímenes
 };
 
-export const updateHorarios = async (horariosData) => {
-  const response = await api.put('/configuraciones/horarios', horariosData);
+export const updateHorarios = async (regimen, horariosData) => {
+  // Ahora pasamos el régimen en la URL
+  const response = await api.put(`/configuraciones/horarios/${regimen}`, horariosData);
   return response.data;
 };
 

@@ -16,3 +16,8 @@ export const markSalida = async (asistenciaId) => {
   const response = await api.put(`/asistencias/${asistenciaId}/salida`);
   return response.data;
 };
+
+export const updateAsistenciaAdmin = async (id, data) => {
+  const response = await api.put(`/asistencias/${id}`, data);
+  return response.data;
+};

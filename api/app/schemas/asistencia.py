@@ -12,3 +12,7 @@ class Asistencia(BaseModel):
     fecha_ingreso: datetime
     fecha_salida: Optional[datetime] = None
     model_config = {"from_attributes": True}
+    
+class AsistenciaUpdate(BaseModel):
+    fecha_ingreso: Optional[datetime] = None
+    fecha_salida: Optional[datetime] = None
