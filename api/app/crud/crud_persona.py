@@ -25,17 +25,6 @@ def crear_persona(db: Session, persona: PersonaCreate):
     db.refresh(db_persona)
     return db_persona
 
-def crear_persona(db: Session, persona: PersonaCreate):
-    db_persona = Persona(
-        dni=persona.dni, 
-        nombre_completo=persona.nombre_completo,
-        tipo_trabajador=persona.tipo_trabajador,
-        is_active=persona.is_active # Agregado
-    )
-    db.add(db_persona)
-    db.commit()
-    db.refresh(db_persona)
-    return db_persona
 
 # --- NUEVA FUNCIÓN PARA ACTUALIZAR ---
 def update_persona(db: Session, persona_id: int, persona_data: PersonaUpdate):
