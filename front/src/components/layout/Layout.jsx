@@ -16,23 +16,29 @@ export default function Layout() {
         <nav className="flex-1 p-4 space-y-2">
           {/* Aquí aplicas la lógica visual para ocultar botones según el rol */}
           <Link to="/" className="block px-4 py-2 text-gray-300 hover:bg-gray-800 rounded">Dashboard</Link>
-          
+
           <Link to="/personas" className="block px-4 py-2 text-gray-300 hover:bg-gray-800 rounded">Personal</Link>
-          
+
           {user?.rol === 'superadmin' && (
             <Link to="/asistencias" className="block px-4 py-2 text-gray-300 hover:bg-gray-800 rounded">Asistencias</Link>
           )}
-          
+
           <Link to="/reportes" className="block px-4 py-2 text-gray-300 hover:bg-gray-800 rounded">Reportes</Link>
-          
+
           {['superadmin', 'admin'].includes(user?.rol) && (
             <Link to="/configuraciones" className="block px-4 py-2 text-gray-300 hover:bg-gray-800 rounded">Configuraciones</Link>
+          )}
+
+          {user?.rol === 'superadmin' && (
+            <Link to="/usuarios" className="block px-4 py-2 text-gray-300 hover:bg-gray-800 rounded">
+              Gestión de Cuentas
+            </Link>
           )}
         </nav>
 
         {/* BOTÓN DE CERRAR SESIÓN AL FINAL DEL MENÚ */}
         <div className="p-4 border-t border-gray-800">
-          <button 
+          <button
             onClick={logout}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-400 bg-red-900/10 border border-red-900/50 rounded hover:bg-red-900/30 transition-colors"
           >
