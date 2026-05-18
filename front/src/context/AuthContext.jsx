@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logoutUsuario } from '../services/auth'; // <-- 1. Importa la nueva función
 
 const AuthContext = createContext();
 
@@ -10,11 +11,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Al cargar la app, revisamos si ya había una sesión guardada
   useEffect(() => {
     const token = localStorage.getItem('token');
     const rol = localStorage.getItem('rol');
-    
     if (token && rol) {
       setUser({ token, rol });
     }
@@ -25,14 +24,23 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('rol', rol);
     setUser({ token, rol });
-    navigate('/'); // Redirige al Dashboard tras iniciar sesión
+    navigate('/');
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('rol');
-    setUser(null);
-    navigate('/login'); // Expulsa al usuario al login
+  // --- 2. FUNCIÓN LOGOUT MEJORADA ---
+  const logout = async () => {
+    try {
+      // Avisamos al backend (opcional, pero buena práctica)
+      await logoutUsuario();
+    } catch (error) {
+      console.error("Error al notificar el cierre de sesión al servidor", error);
+    } finally {
+      // Siempre destruimos la sesión local, incluso si el servidor da error
+      localStorage.removeItem('token');
+      localStorage.removeItem('rol');
+      setUser(null);
+      navigate('/login'); 
+    }
   };
 
   if (loading) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Cargando sistema...</div>;

@@ -12,3 +12,8 @@ export const loginUsuario = async (username, password) => {
   });
   return response.data;
 };
+export const logoutUsuario = async () => {
+  // El interceptor que creamos antes automáticamente le pegará el token a esta petición
+  const response = await api.post('/auth/logout');
+  return response.data;
+};
