@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from app.api.dependencies import get_db
+from app.api.dependencies import get_db, get_current_user
 from app.models.usuario import Usuario
 from app.core.security import verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
@@ -48,3 +48,10 @@ def setup_inicial(db: Session = Depends(get_db)):
     db.add(nuevo_admin)
     db.commit()
     return {"msg": "Usuario maestro 'utimdpn' creado con éxito."}
+
+@router.post("/logout")
+def logout(current_user: Usuario = Depends(get_current_user)):
+    return {
+        "msg": "Sesión cerrada exitosamente",
+        "usuario": current_user.username
+    }
