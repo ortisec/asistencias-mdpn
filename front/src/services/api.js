@@ -11,10 +11,15 @@ export const api = axios.create({
 });
 
 // Opcional pero recomendado: Interceptor para manejar errores globalmente
-api.interceptors.response.use(
-  (response) => response,
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
   (error) => {
-    console.error('Error en la API:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );

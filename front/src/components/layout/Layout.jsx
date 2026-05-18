@@ -1,148 +1,150 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Layout() {
+  const { user, logout } = useAuth();
   const location = useLocation();
 
-  // Definimos nuestras rutas para generar el menú dinámicamente
-  const menuItems = [
-    { 
-      path: '/', 
-      name: 'Dashboard', 
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-        </svg>
-      )
-    },
-    { 
-      path: '/personas', 
-      name: 'Personal', 
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      )
-    },
-    { 
-      path: '/asistencias', 
-      name: 'Asistencias', 
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      )
-    },
-    { 
-      path: '/reportes', 
-      name: 'Reportes RR.HH.', 
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      )
-    },
-    { 
-      path: '/configuraciones', 
-      name: 'Configuración', 
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      )
-    }
-  ];
+  const isActive = (path) => {
+    return location.pathname === path 
+      ? 'bg-gray-800 text-white border-l-4 border-blue-500' 
+      : 'text-gray-400 hover:bg-gray-800 hover:text-white border-l-4 border-transparent';
+  };
 
   return (
-    // Agregamos la clase "dark" aquí para forzar el modo oscuro en toda la app
-    <div className="dark flex h-screen bg-gray-900 text-gray-100 font-sans overflow-hidden">
-      
-      {/* --- SIDEBAR (Menú Lateral) --- */}
-      <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col hidden md:flex">
+    <div className="flex min-h-screen bg-gray-900">
+      {/* MENÚ LATERAL (Sidebar) */}
+      <aside className="w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300">
         
-        {/* Logo Institucional */}
-        <div className="h-20 flex items-center px-6 border-b border-gray-700">
+        {/* Cabecera del Menú */}
+        <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
-            {/* Ícono de Edificio/Municipalidad */}
-            <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-900/50">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">MuniAsistencia</h1>
-              <p className="text-[10px] uppercase tracking-wider text-blue-400 font-semibold">Recursos Humanos</p>
+              <h1 className="text-lg font-bold text-white tracking-wider leading-tight">Muni<span className="text-blue-500">Asistencia</span></h1>
+              <p className="text-[10px] text-gray-500 uppercase font-semibold tracking-widest mt-0.5">{user?.rol}</p>
             </div>
           </div>
         </div>
 
-        {/* Enlaces de Navegación */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {menuItems.map((item) => {
-            // Verificamos si la ruta actual coincide con el botón para pintarlo de azul
-            const isActive = location.pathname === item.path || 
-                             (item.path !== '/' && location.pathname.startsWith(item.path));
-            
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' 
-                    : 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-200'
-                }`}
-              >
-                {item.icon}
-                <span className="font-medium">{item.name}</span>
+        {/* Navegación */}
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+          
+          <Link to="/" className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/')}`}>
+            <svg className={`w-5 h-5 transition-colors ${location.pathname === '/' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            <span className="font-medium text-sm">Dashboard</span>
+          </Link>
+          
+          <Link to="/personas" className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/personas')}`}>
+            <svg className={`w-5 h-5 transition-colors ${location.pathname === '/personas' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span className="font-medium text-sm">Personal</span>
+          </Link>
+          
+          {user?.rol === 'superadmin' && (
+            <Link to="/asistencias" className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/asistencias')}`}>
+              <svg className={`w-5 h-5 transition-colors ${location.pathname === '/asistencias' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium text-sm">Control de Asistencia</span>
+            </Link>
+          )}
+          
+          <Link to="/reportes" className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/reportes')}`}>
+            <svg className={`w-5 h-5 transition-colors ${location.pathname === '/reportes' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="font-medium text-sm">Reportes y Ranking</span>
+          </Link>
+          
+          {['superadmin', 'admin'].includes(user?.rol) && (
+            <Link to="/configuraciones" className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/configuraciones')}`}>
+              <svg className={`w-5 h-5 transition-colors ${location.pathname === '/configuraciones' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="font-medium text-sm">Configuraciones</span>
+            </Link>
+          )}
+
+          {user?.rol === 'superadmin' && (
+            <div className="pt-4 mt-4 border-t border-gray-800/50">
+              <Link to="/usuarios" className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/usuarios')}`}>
+                <svg className={`w-5 h-5 transition-colors ${location.pathname === '/usuarios' ? 'text-purple-400' : 'text-gray-500 group-hover:text-purple-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="font-medium text-sm">Gestión de Cuentas</span>
               </Link>
-            );
-          })}
+            </div>
+          )}
+
         </nav>
 
-        {/* Footer del Sidebar */}
-        <div className="p-4 border-t border-gray-700 text-xs text-gray-500 text-center">
-          <p>© {new Date().getFullYear()} Municipalidad</p>
-          <p>Sistema de Escalafón</p>
+        {/* Zona Inferior: Cierre de sesión y Firmas Dobles */}
+        <div className="p-4 border-t border-gray-800 bg-gray-950/50">
+          <button 
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-red-400 bg-red-900/10 border border-red-900/50 rounded-lg hover:bg-red-900/40 hover:border-red-500/50 transition-all duration-200 mb-5 group"
+          >
+            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Cerrar Sesión
+          </button>
+          
+          {/* --- BLOQUE DE FIRMA MÚLTIPLE --- */}
+          <div className="text-center pb-1">
+            <p className="text-[9px] text-gray-600 uppercase tracking-widest font-semibold">
+              Desarrollado por
+            </p>
+            <div className="flex items-center justify-center gap-2.5 mt-1">
+              
+              {/* Enlace al Sitio Web (Cambia la URL si tienes un dominio propio personalizado) */}
+              <a 
+                href="https://ortisec.site" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-xs font-bold text-gray-500 hover:text-blue-400 transition-colors flex items-center gap-1"
+                title="Visitar Sitio Web Profesional"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8" />
+                </svg>
+                Sitio Web
+              </a>
+
+              {/* Separador sutil */}
+              <span className="text-gray-800 text-xs select-none">|</span>
+
+              {/* Enlace a GitHub */}
+              <a 
+                href="https://github.com/ortisec" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-xs font-bold text-gray-500 hover:text-blue-400 transition-colors flex items-center gap-1"
+                title="Ver Repositorios en GitHub"
+              >
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                </svg>
+                GitHub
+              </a>
+
+            </div>
+          </div>
         </div>
       </aside>
 
-      {/* --- ÁREA PRINCIPAL --- */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        
-        {/* Topbar */}
-        <header className="h-20 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-8 shrink-0">
-          <h2 className="text-gray-300 font-medium">
-            Sistema Integrado de Control de Personal
-          </h2>
-          
-          <div className="flex items-center gap-4">
-            {/* Reloj o Fecha (Opcional visual) */}
-            <div className="hidden sm:block text-sm text-gray-400 bg-gray-900 px-3 py-1.5 rounded-full border border-gray-700">
-              📅 {new Date().toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </div>
-            
-            {/* Avatar de Usuario Falso */}
-            <div className="flex items-center gap-3 pl-4 border-l border-gray-700">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-white">Admin RR.HH.</p>
-                <p className="text-xs text-green-400">En línea</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg">
-                AD
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Contenedor de las Vistas (Aquí cargan tus páginas) */}
-        <main className="flex-1 overflow-y-auto p-8 bg-gray-900">
-          <div className="max-w-7xl mx-auto">
-            <Outlet />
-          </div>
-        </main>
-
-      </div>
+      {/* ÁREA DE CONTENIDO */}
+      <main className="flex-1 p-8 overflow-y-auto bg-gray-900 shadow-inner">
+        <Outlet />
+      </main>
     </div>
   );
 }
