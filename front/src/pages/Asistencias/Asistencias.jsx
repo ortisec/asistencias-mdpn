@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input'; 
-import { Select } from '../../components/ui/Select'; 
-import { Table } from '../../components/ui/Table'; 
+import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
+import { Table } from '../../components/ui/Table';
 import { getAsistencias, createAsistencia, markSalida, updateAsistenciaAdmin } from '../../services/asistencias';
 import { getPersonas } from '../../services/personas';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Asistencias() {
-  // SIMULACIÓN DE ROL (Pronto vendrá del Login)
-  const isAdmin = true; 
+  const { user } = useAuth(); // 2. Extraemos el usuario logueado
+
+  // 3. Verificamos si realmente es un superadmin
+  const isAdmin = user?.rol === 'superadmin';
 
   const [asistencias, setAsistencias] = useState([]);
   const [personas, setPersonas] = useState([]);
@@ -30,7 +33,7 @@ export default function Asistencias() {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const [asistenciasData, personasData] = await Promise.all([ getAsistencias(), getPersonas() ]);
+      const [asistenciasData, personasData] = await Promise.all([getAsistencias(), getPersonas()]);
       setAsistencias(asistenciasData.sort((a, b) => b.id - a.id));
       setPersonas(personasData);
       setError(null);
@@ -53,9 +56,9 @@ export default function Asistencias() {
 
     try {
       await createAsistencia({ persona_id: personaEncontrada.id });
-      cargarDatos(); 
+      cargarDatos();
       setMensajeExito(`Entrada registrada para: ${personaEncontrada.nombre_completo}`);
-      setDniBusqueda(''); inputRef.current?.focus(); 
+      setDniBusqueda(''); inputRef.current?.focus();
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al registrar la asistencia');
     }
@@ -84,7 +87,7 @@ export default function Asistencias() {
     const datosPersona = obtenerDatosPersona(asistencia.persona_id);
     const terminoBusqueda = filtros.busqueda.toLowerCase();
     const coincideBusqueda = datosPersona.dni.includes(terminoBusqueda) || datosPersona.nombre.toLowerCase().includes(terminoBusqueda);
-    
+
     let coincideEstado = true;
     if (filtros.estado === 'PENDIENTE' && asistencia.fecha_salida) coincideEstado = false;
     if (filtros.estado === 'COMPLETADO' && !asistencia.fecha_salida) coincideEstado = false;
@@ -136,7 +139,7 @@ export default function Asistencias() {
 
   return (
     <div className="space-y-6 relative">
-      
+
       {/* ================= MODAL ADMIN EDICIÓN ================= */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -153,20 +156,20 @@ export default function Asistencias() {
               <div className="p-3 bg-blue-900/20 border border-blue-800/50 rounded-lg text-xs text-blue-400 mb-2">
                 <strong>Modo Administrador:</strong> Esta acción sobrescribirá el historial real del sistema.
               </div>
-              
-              <Input 
-                label="Fecha y Hora de Ingreso" 
-                type="datetime-local" 
-                value={editForm.fecha_ingreso} 
-                onChange={(e) => setEditForm({...editForm, fecha_ingreso: e.target.value})} 
-                required 
+
+              <Input
+                label="Fecha y Hora de Ingreso"
+                type="datetime-local"
+                value={editForm.fecha_ingreso}
+                onChange={(e) => setEditForm({ ...editForm, fecha_ingreso: e.target.value })}
+                required
               />
-              
-              <Input 
-                label="Fecha y Hora de Salida (Opcional)" 
-                type="datetime-local" 
-                value={editForm.fecha_salida} 
-                onChange={(e) => setEditForm({...editForm, fecha_salida: e.target.value})} 
+
+              <Input
+                label="Fecha y Hora de Salida (Opcional)"
+                type="datetime-local"
+                value={editForm.fecha_salida}
+                onChange={(e) => setEditForm({ ...editForm, fecha_salida: e.target.value })}
               />
             </div>
 
@@ -180,7 +183,7 @@ export default function Asistencias() {
       {/* ======================================================= */}
 
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Control Operativo de Asistencias</h1>
-      
+
       {error && <div className="p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 border border-red-900">{error}</div>}
       {mensajeExito && <div className="p-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 border border-green-900">{mensajeExito}</div>}
 
@@ -226,7 +229,7 @@ export default function Asistencias() {
                       </td>
                       <td className="px-6 py-4 text-emerald-400 font-medium">{formatearFecha(asistencia.fecha_ingreso)}</td>
                       <td className="px-6 py-4 text-red-400 font-medium">{formatearFecha(asistencia.fecha_salida)}</td>
-                      
+
                       <td className="px-6 py-4 flex gap-2 justify-end">
                         {!asistencia.fecha_salida ? (
                           <Button type="button" variant="danger" className="text-xs py-1.5 px-3" onClick={() => handleMarcarSalida(asistencia.id)}>
@@ -237,12 +240,12 @@ export default function Asistencias() {
                             Completado
                           </span>
                         )}
-                        
+
                         {/* --- BOTÓN DE EDICIÓN EXCLUSIVO PARA ADMIN --- */}
                         {isAdmin && (
-                          <Button 
-                            type="button" 
-                            variant="secondary" 
+                          <Button
+                            type="button"
+                            variant="secondary"
                             onClick={() => openEditModal(asistencia, persona.nombre)}
                             className="text-xs py-1.5 px-3 bg-blue-900/20 text-blue-400 hover:bg-blue-900/40 border border-transparent hover:border-blue-800/50 opacity-0 group-hover:opacity-100 transition-all duration-200"
                             title="Corregir marcación manual"

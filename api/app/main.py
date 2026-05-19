@@ -12,7 +12,7 @@ app = FastAPI(title="API Profesional de Asistencias")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # En producción, aquí pones la URL de tu frontend ej: ["http://localhost:5173"]
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -9,7 +9,8 @@ def get_asistencias(db: Session):
 def crear_asistencia(db: Session, asistencia: AsistenciaCreate):
     db_asistencia = Asistencia(
         persona_id=asistencia.persona_id,
-        fecha_ingreso=asistencia.fecha_ingreso if asistencia.fecha_ingreso else None
+        # CORREGIDO: Si no envían fecha, tomamos la hora actual exacta automáticamente
+        fecha_ingreso=asistencia.fecha_ingreso if asistencia.fecha_ingreso else datetime.now(timezone.utc)
     )
     db.add(db_asistencia)
     db.commit()
