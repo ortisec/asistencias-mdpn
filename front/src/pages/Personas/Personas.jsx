@@ -39,11 +39,11 @@ export default function Personas() {
     cargarPersonas();
   }, []);
 
-const handleChange = (e) => {
+  const handleChange = (e) => {
     const { id, value } = e.target;
     // Solo aplicamos mayúsculas si el campo es el nombre completo
     const valorFinal = id === 'nombre_completo' ? value.toUpperCase() : value;
-    
+
     setFormData({ ...formData, [id]: valorFinal });
   };
 
@@ -60,7 +60,7 @@ const handleChange = (e) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // VALIDACIÓN MANUAL: Evita que viaje al backend si falta la fecha o el régimen
     if (!formData.fecha_inicio_labores) {
       setError("Por favor, seleccione correctamente la fecha de inicio de labores en el calendario.");
@@ -75,7 +75,7 @@ const handleChange = (e) => {
       const datosAEnviar = {
         ...formData,
         tipo_trabajador: Number(formData.tipo_trabajador),
-        dias_laborables: formData.dias_laborables.join(',') 
+        dias_laborables: formData.dias_laborables.join(',')
       };
 
       if (editingId) {
@@ -146,6 +146,20 @@ const handleChange = (e) => {
     { id: '6', letra: 'S', nombre: 'Sábado' },
     { id: '0', letra: 'D', nombre: 'Domingo' }
   ];
+
+  const handleToggleEstado = async (persona) => {
+    const accion = persona.is_active ? 'dar de baja' : 'reactivar';
+    if (!window.confirm(`¿Estás seguro de ${accion} al empleado ${persona.nombre_completo}?`)) return;
+
+    try {
+      // Usamos la misma función de actualizar que ya tienes, pero solo enviamos el cambio de estado
+      await updatePersona(persona.id, { is_active: !persona.is_active });
+      cargarDatos(); // Recargamos la tabla
+      setMensajeExito(`El empleado ha sido ${persona.is_active ? 'dado de baja' : 'reactivado'} correctamente.`);
+    } catch (err) {
+      setError('Error al cambiar el estado del empleado.');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -261,32 +275,39 @@ const handleChange = (e) => {
 
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-md text-xs font-bold tracking-wide ${persona.is_active
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                          : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                        : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
                         }`}>
                         {persona.is_active ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
 
                     <td className="px-6 py-4 flex flex-col sm:flex-row gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="text-xs py-1.5 px-3 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/60"
-                        onClick={() => handleEditClick(persona)}
-                      >
-                        Editar
-                      </Button>
 
-                      <Button
-                        type="button"
-                        variant={persona.is_active ? "danger" : "primary"}
-                        className={`text-xs py-1.5 px-3 ${!persona.is_active && 'bg-emerald-600 hover:bg-emerald-700'}`}
-                        onClick={() => handleToggleStatus(persona)}
-                      >
-                        {persona.is_active ? 'Desactivar' : 'Activar'}
-                      </Button>
+                      {/* --- BOTONES DE MODIFICACIÓN: Exclusivos para Super Admin y RRHH --- */}
+                      {['superadmin', 'rrhh'].includes(user?.rol) && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="text-xs py-1.5 px-3 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/60"
+                            onClick={() => handleEditClick(persona)}
+                          >
+                            Editar
+                          </Button>
 
+                          <Button
+                            type="button"
+                            variant={persona.is_active ? "danger" : "primary"}
+                            className={`text-xs py-1.5 px-3 ${!persona.is_active && 'bg-emerald-600 hover:bg-emerald-700'}`}
+                            onClick={() => handleToggleStatus(persona)}
+                          >
+                            {persona.is_active ? 'Desactivar' : 'Activar'}
+                          </Button>
+                        </>
+                      )}
+
+                      {/* --- BOTÓN DE LECTURA: Visible para todos (incluyendo 'admin') --- */}
                       <Button
                         type="button"
                         variant="secondary"
@@ -295,6 +316,7 @@ const handleChange = (e) => {
                       >
                         Historial
                       </Button>
+
                     </td>
                   </tr>
                 ))
