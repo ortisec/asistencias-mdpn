@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { useAuth } from '../../context/AuthContext';
 import { getPersonas, createPersona, updatePersona } from '../../services/personas';
 
 export default function Personas() {
+  const { user } = useAuth();
+
   const [personas, setPersonas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
