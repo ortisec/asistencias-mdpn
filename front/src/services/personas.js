@@ -10,9 +10,12 @@ export const createPersona = async (personaData) => {
   return response.data;
 };
 
-// --- NUEVA FUNCIÓN PARA ACTUALIZAR ---
 export const updatePersona = async (id, personaData) => {
-  // Usamos PATCH y pasamos el ID en la URL
-  const response = await api.patch(`/personas/${id}`, personaData);
+  const response = await api.put(`/personas/${id}`, personaData);
+  return response.data;
+};
+
+export const deletePersona = async (id) => {
+  const response = await api.delete(`/personas/${id}`);
   return response.data;
 };

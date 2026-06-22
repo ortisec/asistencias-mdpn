@@ -1,0 +1,45 @@
+services:
+  # 1. BASE DE DATOS POSTGRESQL
+  db:
+    image: postgres:17
+    container_name: muni_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: utimdpn
+      POSTGRES_PASSWORD: utimdpn2026  # Cambia esto en el VPS
+      POSTGRES_DB: asistencia
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. BACKEND (FASTAPI)
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: muni_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # FastAPI se conecta usando el nombre del contenedor 'db'
+      - DATABASE_URL=postgresql://utimdpn:utimdpn2026@db:5432/asistencia
+    depends_on:
+      - db
+
+  # 3. FRONTEND (REACT / VITE)
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: muni_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80" # Mapeamos el puerto 80 del contenedor Nginx al 5173 (o 80) de tu VPS
+    depends_on:
+      - api
+
+# Declaración del volumen persistente para no perder datos
+volumes:
+  postgres_data:

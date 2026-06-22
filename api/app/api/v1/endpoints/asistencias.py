@@ -22,19 +22,19 @@ def obtener_asistencias(
 def registrar_entrada(
     asistencia: schemas.AsistenciaCreate,
     db: Session = Depends(get_db),
-    _=Depends(RoleChecker(["superadmin"])),
+    _=Depends(RoleChecker(["superadmin"])),  # Solo superadmin
 ):
-    # CORREGIDO: Llamamos a "crear_asistencia" en vez de "create_asistencia"
+    # AQUÍ ESTABA EL ERROR: Cambiamos create_asistencia por crear_asistencia
     return crud.crear_asistencia(db=db, asistencia=asistencia)
 
 
 @router.put("/{asistencia_id}/salida", response_model=schemas.Asistencia)
-def marcar_salida(
+def marcar_salida_endpoint(
     asistencia_id: int,
     db: Session = Depends(get_db),
-    _=Depends(RoleChecker(["superadmin"])),
+    _=Depends(RoleChecker(["superadmin"])),  # Solo superadmin
 ):
-    # CORREGIDO: Llamamos a "marcar_salida" en vez de "mark_salida"
+    # AQUÍ ESTABA EL ERROR: Cambiamos mark_salida por marcar_salida
     asistencia_actualizada = crud.marcar_salida(db=db, asistencia_id=asistencia_id)
     if not asistencia_actualizada:
         raise HTTPException(status_code=404, detail="Asistencia no encontrada")

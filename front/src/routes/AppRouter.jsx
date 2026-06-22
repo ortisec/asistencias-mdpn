@@ -9,6 +9,8 @@ import Asistencias from '../pages/Asistencias/Asistencias';
 import Reportes from '../pages/Reportes/Reportes';
 import Configuraciones from '../pages/Configuraciones/Configuraciones';
 import Usuarios from '../pages/Usuarios/Usuarios';
+import Planillas from '../pages/Planillas/Planillas'; // <-- Importación agregada
+import BoletaPrint from '../pages/Planillas/BoletaPrint';
 
 export default function AppRouter() {
   return (
@@ -20,8 +22,19 @@ export default function AppRouter() {
           {/* --- RUTA PÚBLICA --- */}
           <Route path="/login" element={<Login />} />
 
-          {/* --- RUTAS PRIVADAS (Envuelta en Layout) --- */}
-          {/* El Layout en sí mismo requiere estar logueado (cualquier rol) */}
+          {/* =========================================
+              RUTAS SIN MENÚ LATERAL (IMPRESIÓN AISLADA)
+              ========================================= */}
+          <Route path="/imprimir-boleta/:id" element={
+            <ProtectedRoute allowedRoles={['superadmin', 'rrhh']}>
+              <BoletaPrint />
+            </ProtectedRoute>
+          } />
+
+          {/* =========================================
+              RUTAS PRIVADAS ESTÁNDAR (CON MENÚ LATERAL)
+              ========================================= */}
+          {/* Unificamos TODAS las rutas que usan Layout dentro de este único bloque */}
           <Route path="/" element={
             <ProtectedRoute>
               <Layout />
@@ -61,6 +74,12 @@ export default function AppRouter() {
             <Route path="usuarios" element={
               <ProtectedRoute allowedRoles={['superadmin']}>
                 <Usuarios />
+              </ProtectedRoute>
+            } />
+
+            <Route path="planillas" element={
+              <ProtectedRoute allowedRoles={['superadmin', 'rrhh']}>
+                <Planillas />
               </ProtectedRoute>
             } />
 
