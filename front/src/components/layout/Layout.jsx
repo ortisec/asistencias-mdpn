@@ -9,8 +9,8 @@ export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path) => {
-    return location.pathname === path 
-      ? 'bg-gray-800 text-white border-l-4 border-blue-500' 
+    return location.pathname === path
+      ? 'bg-gray-800 text-white border-l-4 border-blue-500'
       : 'text-gray-400 hover:bg-gray-800 hover:text-white border-l-4 border-transparent';
   };
 
@@ -20,13 +20,13 @@ export default function Layout() {
   return (
     // Contenedor principal: Altura fija de la pantalla, sin scroll general (h-screen, overflow-hidden)
     <div className="flex h-screen bg-gray-900 overflow-hidden">
-      
+
       {/* ========================================
         MENÚ MÓVIL: FONDO OSCURO (Overlay)
         ========================================
       */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-40 lg:hidden"
           onClick={closeMobileMenu}
         />
@@ -38,12 +38,11 @@ export default function Layout() {
         En desktop (lg): Ancho fijo, siempre visible (static).
         En móvil: Posición absoluta, se desliza desde la izquierda (-translate-x-full a translate-x-0).
       */}
-      <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
-        
+
         {/* Cabecera del Menú (Fija arriba) */}
         <div className="p-6 border-b border-gray-800 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
@@ -63,21 +62,21 @@ export default function Layout() {
 
         {/* Navegación (Scroll independiente) */}
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-          
+
           <Link to="/" onClick={closeMobileMenu} className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/')}`}>
             <svg className={`w-5 h-5 transition-colors shrink-0 ${location.pathname === '/' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
             <span className="font-medium text-sm truncate">Dashboard</span>
           </Link>
-          
+
           <Link to="/personas" onClick={closeMobileMenu} className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/personas')}`}>
             <svg className={`w-5 h-5 transition-colors shrink-0 ${location.pathname === '/personas' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <span className="font-medium text-sm truncate">Personal</span>
           </Link>
-          
+
           {user?.rol === 'superadmin' && (
             <Link to="/asistencias" onClick={closeMobileMenu} className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/asistencias')}`}>
               <svg className={`w-5 h-5 transition-colors shrink-0 ${location.pathname === '/asistencias' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -86,7 +85,7 @@ export default function Layout() {
               <span className="font-medium text-sm truncate">Control de Asistencia</span>
             </Link>
           )}
-          
+
           <Link to="/reportes" onClick={closeMobileMenu} className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/reportes')}`}>
             <svg className={`w-5 h-5 transition-colors shrink-0 ${location.pathname === '/reportes' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -94,6 +93,14 @@ export default function Layout() {
             <span className="font-medium text-sm truncate">Reportes y Ranking</span>
           </Link>
           
+          <Link to="/planillas" onClick={closeMobileMenu} className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/planillas')}`}>
+            <svg className={`w-5 h-5 transition-colors shrink-0 ${location.pathname === '/planillas' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {/* Ícono de Documentos Financieros / Billetes */}
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span className="font-medium text-sm truncate">Nómina y Planillas</span>
+          </Link>
+
           {['superadmin', 'admin'].includes(user?.rol) && (
             <Link to="/configuraciones" onClick={closeMobileMenu} className={`flex items-center gap-3 px-4 py-2.5 rounded-r-lg transition-colors group ${isActive('/configuraciones')}`}>
               <svg className={`w-5 h-5 transition-colors shrink-0 ${location.pathname === '/configuraciones' ? 'text-blue-400' : 'text-gray-500 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +126,7 @@ export default function Layout() {
 
         {/* Zona Inferior: Cierre de sesión y Firmas Dobles (Fija abajo) */}
         <div className="p-4 border-t border-gray-800 bg-gray-950/50 shrink-0">
-          <button 
+          <button
             onClick={logout}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-red-400 bg-red-900/10 border border-red-900/50 rounded-lg hover:bg-red-900/40 hover:border-red-500/50 transition-all duration-200 mb-5 group"
           >
@@ -128,7 +135,7 @@ export default function Layout() {
             </svg>
             <span className="truncate">Cerrar Sesión</span>
           </button>
-          
+
           <div className="text-center pb-1">
             <p className="text-[9px] text-gray-600 uppercase tracking-widest font-semibold">
               Desarrollado por
@@ -160,7 +167,7 @@ export default function Layout() {
         Tiene su propio scroll interno (overflow-y-auto).
       */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        
+
         {/* Barra superior (Topbar) - Solo visible en móvil para abrir el menú */}
         <header className="lg:hidden flex items-center justify-between p-4 bg-gray-950 border-b border-gray-800 shrink-0">
           <div className="flex items-center gap-2">
@@ -169,7 +176,7 @@ export default function Layout() {
             </div>
             <h1 className="text-base font-bold text-white">Muni<span className="text-blue-500">Asistencia</span></h1>
           </div>
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 -mr-2 text-gray-400 hover:text-white focus:outline-none"
           >
