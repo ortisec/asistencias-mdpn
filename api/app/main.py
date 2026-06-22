@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from app.db.database import engine
 from app.db.base import Base
 
-from app.api.v1.endpoints import personas, asistencias, configuraciones, auth, usuarios
+from app.api.v1.endpoints import personas, asistencias, configuraciones, auth, usuarios, planillas
 
 Base.metadata.create_all(bind=engine)
 
@@ -24,3 +24,4 @@ app.include_router(personas.router, prefix="/api/v1/personas", tags=["Personas"]
 app.include_router(asistencias.router, prefix="/api/v1/asistencias", tags=["Asistencias"])
 app.include_router(configuraciones.router, prefix="/api/v1/configuraciones", tags=["Configuraciones"])
 app.include_router(usuarios.router, prefix="/api/v1/usuarios", tags=["Gestión de Usuarios"])
+app.include_router(planillas.router, prefix="/api/v1/planillas", tags=["Nómina y Planillas"])
