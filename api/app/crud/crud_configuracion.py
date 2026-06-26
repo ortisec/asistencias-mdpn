@@ -41,14 +41,16 @@ def update_horario_regimen(db: Session, regimen: int, config_in: ConfiguracionHo
 def get_feriados(db: Session):
     return db.query(Feriado).order_by(Feriado.fecha.desc()).all()
 
-def crear_feriado(db: Session, feriado: FeriadoCreate):
+# CORRECCIÓN: Cambiado de crear_feriado a create_feriado
+def create_feriado(db: Session, feriado: FeriadoCreate):
     db_feriado = Feriado(fecha=feriado.fecha, motivo=feriado.motivo)
     db.add(db_feriado)
     db.commit()
     db.refresh(db_feriado)
     return db_feriado
 
-def eliminar_feriado(db: Session, feriado_id: int):
+# CORRECCIÓN: Cambiado de eliminar_feriado a delete_feriado
+def delete_feriado(db: Session, feriado_id: int):
     db_feriado = db.query(Feriado).filter(Feriado.id == feriado_id).first()
     if db_feriado:
         db.delete(db_feriado)

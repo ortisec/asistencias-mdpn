@@ -24,7 +24,8 @@ def crear_persona(
         raise HTTPException(status_code=400, detail="El DNI ya está registrado")
     return crud.crear_persona(db=db, persona=persona)
 
-@router.patch("/{persona_id}", response_model=schemas.Persona)
+# --- CORRECCIÓN: Ahora es PUT para coincidir exactamente con tu Frontend ---
+@router.put("/{persona_id}", response_model=schemas.Persona)
 def actualizar_persona(
     persona_id: int, 
     persona_in: schemas.PersonaUpdate, 
@@ -35,3 +36,18 @@ def actualizar_persona(
     if not db_persona:
         raise HTTPException(status_code=404, detail="Persona no encontrada")
     return crud.update_persona(db=db, persona_id=persona_id, persona_data=persona_in)
+
+# --- AGREGADO: Método DELETE que también llama tu Frontend ---
+@router.delete("/{persona_id}")
+def eliminar_persona(
+    persona_id: int, 
+    db: Session = Depends(get_db),
+    _ = Depends(RoleChecker(["superadmin"])) # Solo el superadmin puede eliminar permanentemente
+):
+    db_persona = crud.get_persona_por_id(db, persona_id=persona_id)
+    if not db_persona:
+        raise HTTPException(status_code=404, detail="Persona no encontrada")
+    
+    db.delete(db_persona)
+    db.commit()
+    return {"mensaje": "Trabajador eliminado del sistema correctamente"}

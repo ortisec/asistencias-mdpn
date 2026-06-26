@@ -7,28 +7,35 @@ from app.crud import crud_planilla as crud
 
 router = APIRouter()
 
+# Endpoint para disparar el Motor de Cálculo
+@router.post("/generar", response_model=schemas.PlanillaResponse)
+def generar_planilla(
+    request: schemas.GenerarPlanillaRequest, # Usamos el nombre correcto del esquema
+    db: Session = Depends(get_db),
+    _ = Depends(RoleChecker(["superadmin", "rrhh"]))
+):
+    return crud.generar_planilla_mensual(
+        db=db, 
+        periodo=request.periodo, 
+        tipo_trabajador=request.tipo_trabajador
+    )
+
+# Endpoint para ver el historial de meses
 @router.get("/", response_model=List[schemas.PlanillaResponse])
 def listar_planillas(
     db: Session = Depends(get_db),
-    _ = Depends(RoleChecker(["superadmin", "rrhh"]))
+    _ = Depends(RoleChecker(["superadmin", "rrhh", "admin"]))
 ):
-    return crud.get_planillas(db)
+    return crud.obtener_planillas(db)
 
+# Endpoint para ver una boleta específica (útil para la impresión)
 @router.get("/{planilla_id}", response_model=schemas.PlanillaResponse)
-def obtener_detalle_planilla(
+def obtener_planilla(
     planilla_id: int,
     db: Session = Depends(get_db),
-    _ = Depends(RoleChecker(["superadmin", "rrhh"]))
+    _ = Depends(RoleChecker(["superadmin", "rrhh", "admin"]))
 ):
-    db_planilla = crud.get_planilla_by_id(db, planilla_id)
-    if not db_planilla:
+    planilla = crud.obtener_planilla_por_id(db, planilla_id)
+    if not planilla:
         raise HTTPException(status_code=404, detail="Planilla no encontrada")
-    return db_planilla
-
-@router.post("/", response_model=schemas.PlanillaResponse)
-def generar_planilla(
-    planilla_in: schemas.PlanillaCreate,
-    db: Session = Depends(get_db),
-    _ = Depends(RoleChecker(["superadmin", "rrhh"]))
-):
-    return crud.crear_planilla_completa(db=db, planilla_in=planilla_in)
+    return planilla
