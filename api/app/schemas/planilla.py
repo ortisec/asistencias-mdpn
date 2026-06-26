@@ -1,50 +1,40 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
-# --- DETALLES DE LA BOLETA ---
-class BoletaDetalleBase(BaseModel):
-    tipo: str
-    concepto: str
-    monto: float
+class GenerarPlanillaRequest(BaseModel):
+    periodo: str
+    tipo_trabajador: int
 
-class BoletaDetalleCreate(BoletaDetalleBase):
-    pass
-
-class BoletaDetalleResponse(BoletaDetalleBase):
+class BoletaDetalleResponse(BaseModel):
     id: int
+    concepto_nombre: str
+    tipo: str
+    monto_calculado: float
     model_config = {"from_attributes": True}
 
-# --- LA BOLETA ---
-class BoletaBase(BaseModel):
+class BoletaResponse(BaseModel):
+    id: int
     persona_id: int
-    dias_laborados: int = 30
-    faltas: int = 0
-    minutos_tardanza: int = 0
+    salario_base: float
+    cargo_nombre: Optional[str]
+    condicion_nombre: Optional[str]
     total_ingresos: float
     total_descuentos: float
     total_aportaciones: float
-    neto_pagar: float
+    neto_a_cobrar: float
+    detalles: List[BoletaDetalleResponse] = []
+    
+    # Opcional: Incluir el nombre del empleado en la respuesta para facilitar el listado
+    nombre_empleado: Optional[str] = None
+    dni_empleado: Optional[str] = None
 
-class BoletaCreate(BoletaBase):
-    detalles: List[BoletaDetalleCreate]
-
-class BoletaResponse(BoletaBase):
-    id: int
-    planilla_id: int
-    detalles: List[BoletaDetalleResponse]
     model_config = {"from_attributes": True}
 
-# --- LA PLANILLA (CONTENEDOR MENSUAL) ---
-class PlanillaBase(BaseModel):
-    periodo: str
-    condicion_laboral: str
-
-class PlanillaCreate(PlanillaBase):
-    boletas: List[BoletaCreate]
-
-class PlanillaResponse(PlanillaBase):
+class PlanillaResponse(BaseModel):
     id: int
-    fecha_creacion: datetime
+    periodo: str
+    tipo_trabajador: int
+    fecha_generacion: datetime
     boletas: List[BoletaResponse] = []
     model_config = {"from_attributes": True}

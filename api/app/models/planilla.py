@@ -1,48 +1,48 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from app.db.base import Base
-from datetime import datetime, timezone
 
 class Planilla(Base):
     __tablename__ = "planillas"
-    
     id = Column(Integer, primary_key=True, index=True)
     periodo = Column(String(50), nullable=False) # Ej: "MAYO 2026"
-    condicion_laboral = Column(String(100), nullable=False) # Ej: "D. LEG 728 - OBRERO PERMANENTE"
-    fecha_creacion = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    tipo_trabajador = Column(Integer, nullable=False) # 1057, 728, 276
+    fecha_generacion = Column(DateTime(timezone=True), server_default=func.now())
     
+    # Relación con las boletas de este mes
     boletas = relationship("Boleta", back_populates="planilla", cascade="all, delete-orphan")
 
 class Boleta(Base):
     __tablename__ = "boletas"
-    
     id = Column(Integer, primary_key=True, index=True)
-    planilla_id = Column(Integer, ForeignKey("planillas.id"))
-    persona_id = Column(Integer, ForeignKey("personas.id")) # Relación con el empleado
+    planilla_id = Column(Integer, ForeignKey("planillas.id", ondelete="CASCADE"), nullable=False)
+    persona_id = Column(Integer, ForeignKey("personas.id"), nullable=False)
     
-    # Datos operativos del mes
-    dias_laborados = Column(Integer, default=30)
-    faltas = Column(Integer, default=0)
-    minutos_tardanza = Column(Integer, default=0)
+    # Copia dura de los datos en el momento de la generación
+    salario_base = Column(Float, nullable=False)
+    cargo_nombre = Column(String(100), nullable=True)
+    condicion_nombre = Column(String(100), nullable=True)
     
-    # Totales consolidados
+    # Totales calculados
     total_ingresos = Column(Float, default=0.0)
     total_descuentos = Column(Float, default=0.0)
     total_aportaciones = Column(Float, default=0.0)
-    neto_pagar = Column(Float, default=0.0)
+    neto_a_cobrar = Column(Float, default=0.0)
 
+    # Relaciones
     planilla = relationship("Planilla", back_populates="boletas")
-    persona = relationship("Persona") # Asume que tu modelo de Persona se llama así
+    persona = relationship("Persona")
     detalles = relationship("BoletaDetalle", back_populates="boleta", cascade="all, delete-orphan")
 
 class BoletaDetalle(Base):
     __tablename__ = "boleta_detalles"
-    
     id = Column(Integer, primary_key=True, index=True)
-    boleta_id = Column(Integer, ForeignKey("boletas.id"))
+    boleta_id = Column(Integer, ForeignKey("boletas.id", ondelete="CASCADE"), nullable=False)
     
-    tipo = Column(String(20), nullable=False) # "INGRESO", "DESCUENTO", "APORTACION"
-    concepto = Column(String(100), nullable=False) # Ej: "Salario Básico Mensual", "SNP 13.00%"
-    monto = Column(Float, default=0.0)
+    # La "Foto" del concepto
+    concepto_nombre = Column(String(100), nullable=False)
+    tipo = Column(String(20), nullable=False) # INGRESO, DESCUENTO, APORTACION
+    monto_calculado = Column(Float, nullable=False)
 
     boleta = relationship("Boleta", back_populates="detalles")
