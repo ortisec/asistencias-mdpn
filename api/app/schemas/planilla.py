@@ -11,11 +11,14 @@ class BoletaDetalleResponse(BaseModel):
     concepto_nombre: str
     tipo: str
     monto_calculado: float
-    model_config = {"from_attributes": True}
+    class Config:
+        from_attributes = True
 
 class BoletaResponse(BaseModel):
     id: int
-    persona_id: int
+    persona_id: Optional[int]
+    persona_nombre: str  # <-- Campo corregido
+    persona_dni: str     # <-- Campo corregido
     salario_base: float
     cargo_nombre: Optional[str]
     condicion_nombre: Optional[str]
@@ -24,17 +27,17 @@ class BoletaResponse(BaseModel):
     total_aportaciones: float
     neto_a_cobrar: float
     detalles: List[BoletaDetalleResponse] = []
-    
-    # Opcional: Incluir el nombre del empleado en la respuesta para facilitar el listado
-    nombre_empleado: Optional[str] = None
-    dni_empleado: Optional[str] = None
-
-    model_config = {"from_attributes": True}
+    class Config:
+        from_attributes = True
 
 class PlanillaResponse(BaseModel):
     id: int
     periodo: str
     tipo_trabajador: int
     fecha_generacion: datetime
+    total_general_ingresos: float
+    total_general_descuentos: float
+    total_general_neto: float
     boletas: List[BoletaResponse] = []
-    model_config = {"from_attributes": True}
+    class Config:
+        from_attributes = True

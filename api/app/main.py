@@ -1,14 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
 from app.db.database import engine
 from app.db.base import Base
 
-from app.api.v1.endpoints import personas, asistencias, configuraciones, auth, usuarios, planillas,config_nomina
+# 1. Importamos las rutas (endpoints)
+from app.api.v1.endpoints import personas, asistencias, configuraciones, auth, usuarios, planillas, config_nomina
 
+# 2. Importamos los modelos de otra forma para EVITAR colisión de nombres
+import app.models.planilla
+import app.models.config_nomina
+import app.models.persona
+import app.models.asistencia
+import app.models.configuracion
+
+# 3. Creamos las tablas
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="API Profesional de Asistencias")
+app = FastAPI(title="API Profesional de Asistencias y Nómina")
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registramos los Routers
+# 4. Registramos los Routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Autenticación"])
 app.include_router(personas.router, prefix="/api/v1/personas", tags=["Personas"])
 app.include_router(asistencias.router, prefix="/api/v1/asistencias", tags=["Asistencias"])
