@@ -20,7 +20,10 @@ app = FastAPI(title="API Profesional de Asistencias y Nómina")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://asistencias.ortisec.site",  # El dominio público de tu web
+        "http://localhost:5173"     # Por si pruebas localmente
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

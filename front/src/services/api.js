@@ -1,22 +1,32 @@
 import axios from 'axios';
 
-// Detectamos automáticamente la IP o dominio desde donde el usuario abrió la página.
-// Si entras por http://localhost, apuntará a localhost:8000
-// Si entras por la IP de tu VPS, apuntará a esa IP:8000
-const CURRENT_HOST = window.location.hostname;
-const DEFAULT_API = `http://${CURRENT_HOST}:8000/api/v1`;
+const getBaseURL = () => {
+  // 1. Prioridad máxima: Variable de entorno (útil para el VPS)
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
 
-// Usamos la variable de entorno si existe, sino usamos la ruta dinámica
-const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API;
+  // 2. Si estamos en desarrollo local (tu PC)
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:8000/api/v1';
+  }
+
+  // 3. Si estamos en el VPS con Cloudflare
+  // Al usar un túnel, la API suele estar en la misma raíz que el front
+  // o en un subdominio que el navegador ya interpreta como seguro.
+  // IMPORTANTE: Aquí quitamos el ":8000" porque el túnel de Cloudflare
+  // ya hace el puente hacia el puerto 8000 internamente.
+  return `https://${window.location.hostname}/api/v1`;
+};
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor para inyectar el token de seguridad
+// Interceptor (mantenlo igual)
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -25,7 +35,5 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
