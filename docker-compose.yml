@@ -40,6 +40,22 @@ services:
     depends_on:
       - api
 
+  # 4. PGADMIN (interfaz web para ver las tablas)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin_web
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: uti@utimdpn.com
+      PGADMIN_DEFAULT_PASSWORD: utimdpn2026
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+
 # Declaración del volumen persistente para no perder datos
 volumes:
   postgres_data:
+  pgadmin_data:
