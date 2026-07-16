@@ -1,7 +1,7 @@
 import { useDashboard } from './useDashboard';
-import { StatCard } from './components/StatCard';
-import { PuntualidadChart, RegimenChart } from './components/Charts';
-import { ActividadList } from './components/ActividadList';
+import { StatCard } from './StatCard';
+import { PuntualidadChart, RegimenChart } from './Charts';
+import { ActividadList } from './ActividadList';
 
 export default function Dashboard() {
   const { metricas, datosPuntualidad, datosRegimen, actividadReciente, loading } = useDashboard();
