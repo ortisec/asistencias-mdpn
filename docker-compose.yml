@@ -49,7 +49,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: uti@utimdpn.com
       PGADMIN_DEFAULT_PASSWORD: utimdpn2026
     ports:
-      - "8080:80"
+      - "8081:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:

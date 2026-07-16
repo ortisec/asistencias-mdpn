@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Table } from '../../components/ui/Table';
-import { getAsistencias, createAsistencia, markSalida, updateAsistenciaAdmin } from '../../services/asistencias';
+import { getAsistencias, markSalida, updateAsistenciaAdmin } from '../../services/asistencias';
 import { getPersonas } from '../../services/personas';
+import { checkDeviceStatus, syncAll } from '../../services/zkteco';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Asistencias() {
@@ -19,12 +20,14 @@ export default function Asistencias() {
   const [error, setError] = useState(null);
   const [mensajeExito, setMensajeExito] = useState(null);
 
-  const [dniBusqueda, setDniBusqueda] = useState('');
-  const inputRef = useRef(null);
-
   const [filtros, setFiltros] = useState({
     busqueda: '', estado: '', fechaInicio: '', fechaFin: ''
   });
+
+  const [syncing, setSyncing] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [statusType, setStatusType] = useState('success');
+  const [deviceIp, setDeviceIp] = useState(() => localStorage.getItem('zkteco_ip') || '192.168.18.202');
 
   // --- ESTADOS PARA EL MODAL DE EDICIÓN ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -46,22 +49,36 @@ export default function Asistencias() {
 
   useEffect(() => { cargarDatos(); }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null); setMensajeExito(null);
-
-    const personaEncontrada = personas.find(p => p.dni === dniBusqueda);
-    if (!personaEncontrada) { setError(`No se encontró ningún empleado con el DNI: ${dniBusqueda}`); inputRef.current?.select(); return; }
-    if (!personaEncontrada.is_active) { setError(`El empleado ${personaEncontrada.nombre_completo} está INACTIVO en el sistema.`); inputRef.current?.select(); return; }
-
+  const handleCheckStatus = async () => {
+    setSyncing(true); setError(null); setMensajeExito(null); setStatusMessage('');
     try {
-      await createAsistencia({ persona_id: personaEncontrada.id });
-      cargarDatos();
-      setMensajeExito(`Entrada registrada para: ${personaEncontrada.nombre_completo}`);
-      setDniBusqueda(''); inputRef.current?.focus();
+      localStorage.setItem('zkteco_ip', deviceIp);
+      const result = await checkDeviceStatus({ ip: deviceIp });
+      if (result.conectado) {
+        setStatusType('success');
+        setStatusMessage(`Conectado - Firmware: ${result.firmware} | Serial: ${result.serial} | Usuarios: ${result.usuarios_en_dispositivo} | Registros: ${result.asistencias_en_dispositivo}`);
+      } else {
+        setStatusType('error');
+        setStatusMessage(`Error de conexión: ${result.error}`);
+      }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Error al registrar la asistencia');
-    }
+      setStatusType('error');
+      setStatusMessage(err.response?.data?.detail || 'Error al verificar conexión');
+    } finally { setSyncing(false); }
+  };
+
+  const handleSyncAll = async () => {
+    setSyncing(true); setError(null); setMensajeExito(null); setStatusMessage('');
+    try {
+      localStorage.setItem('zkteco_ip', deviceIp);
+      const result = await syncAll({ ip: deviceIp });
+      setStatusType('success');
+      setStatusMessage(result.mensaje);
+      cargarDatos();
+    } catch (err) {
+      setStatusType('error');
+      setStatusMessage(err.response?.data?.detail || 'Error al sincronizar');
+    } finally { setSyncing(false); }
   };
 
   const handleMarcarSalida = async (id) => {
@@ -122,9 +139,17 @@ export default function Asistencias() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    await updateAsistenciaAdmin(modal.data.id, modal.data);
-    setModal({ isOpen: false, data: {} });
-    refresh();
+    try {
+      const payload = {};
+      if (editForm.fecha_ingreso) payload.fecha_ingreso = new Date(editForm.fecha_ingreso).toISOString();
+      if (editForm.fecha_salida) payload.fecha_salida = new Date(editForm.fecha_salida).toISOString();
+      await updateAsistenciaAdmin(editForm.id, payload);
+      setIsEditModalOpen(false);
+      cargarDatos();
+      setMensajeExito('Asistencia corregida exitosamente por el Administrador.');
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al actualizar el registro manual');
+    }
   };
 
   return (
@@ -172,26 +197,102 @@ export default function Asistencias() {
       )}
       {/* ======================================================= */}
 
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Control Operativo de Asistencias</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Control Operativo de Asistencias - PRUEBA</h1>
 
       {error && <div className="p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 border border-red-900">{error}</div>}
       {mensajeExito && <div className="p-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 border border-green-900">{mensajeExito}</div>}
 
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col sm:flex-row gap-4 items-end border-l-4 border-emerald-500">
-        <div className="flex-1 w-full max-w-sm">
-          <Input label="Marcar Entrada (Escanee DNI)" id="dni" placeholder="Ej: 76543210" value={dniBusqueda} onChange={(e) => setDniBusqueda(e.target.value)} required autoFocus ref={inputRef} />
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-l-4 border-blue-500">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+          Sincronización con Huellero Biométrico
+        </h2>
+        <div className="flex flex-col sm:flex-row gap-3 items-end">
+          <div className="flex-1 w-full max-w-xs">
+            <Input label="IP del Dispositivo" id="deviceIp" placeholder="192.168.18.202" value={deviceIp} onChange={(e) => setDeviceIp(e.target.value)} />
+          </div>
+          <div className="w-full sm:w-auto flex gap-2">
+            <Button type="button" variant="secondary" onClick={handleCheckStatus} disabled={syncing} className="w-full sm:w-auto">
+              {syncing ? 'Verificando...' : 'Probar Conexión'}
+            </Button>
+            <Button type="button" variant="primary" onClick={handleSyncAll} disabled={syncing} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
+              {syncing ? 'Sincronizando...' : 'Sincronizar Ahora'}
+            </Button>
+          </div>
         </div>
-        <Button type="submit" variant="primary" className="w-full sm:w-auto h-10 bg-emerald-600 hover:bg-emerald-700">Registrar</Button>
-      </form>
+        {statusMessage && (
+          <div className={`mt-3 p-3 text-sm rounded-lg border ${statusType === 'success' ? 'text-green-700 bg-green-50 dark:bg-green-900/20 dark:text-green-400 border-green-800' : 'text-red-700 bg-red-50 dark:bg-red-900/20 dark:text-red-400 border-red-800'}`}>
+            {statusMessage}
+          </div>
+        )}
+      </div>
 
-      {/* Renderizado de Tabla y Modal */}
-      <AsistenciaEditModal 
-        isOpen={modal.isOpen} 
-        onClose={() => setModal({ ...modal, isOpen: false })}
-        form={modal.data}
-        setForm={(data) => setModal({ ...modal, data })}
-        onSubmit={handleUpdate}
-      />
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex flex-col lg:flex-row gap-4 items-end border-t border-gray-700">
+        <div className="flex-1 w-full"><Input label="Buscar en historial" id="busqueda" placeholder="DNI o Nombre..." value={filtros.busqueda} onChange={handleFiltroChange} /></div>
+        <div className="w-full lg:w-48"><Select label="Estado del Turno" id="estado" value={filtros.estado} onChange={handleFiltroChange} options={[{ value: 'PENDIENTE', label: 'Trabajando (Sin Salida)' }, { value: 'COMPLETADO', label: 'Turno Completado' }]}><option value="">Todos</option></Select></div>
+        <div className="w-full lg:w-40"><Input label="Desde" id="fechaInicio" type="date" value={filtros.fechaInicio} onChange={handleFiltroChange} /></div>
+        <div className="w-full lg:w-40"><Input label="Hasta" id="fechaFin" type="date" value={filtros.fechaFin} onChange={handleFiltroChange} /></div>
+        <Button type="button" variant="secondary" onClick={() => setFiltros({ busqueda: '', estado: '', fechaInicio: '', fechaFin: '' })} className="w-full lg:w-auto text-sm">Limpiar</Button>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-x-auto border border-gray-700">
+        {loading ? (
+          <p className="p-6 text-gray-400">Cargando historial...</p>
+        ) : (
+          <table className="min-w-full text-left text-sm whitespace-nowrap">
+            <thead className="uppercase tracking-wider border-b border-gray-700 bg-gray-900/50 text-gray-400 text-xs">
+              <tr>
+                <th className="px-6 py-4 font-semibold">Empleado</th>
+                <th className="px-6 py-4 font-semibold">Fecha/Hora Ingreso</th>
+                <th className="px-6 py-4 font-semibold">Fecha/Hora Salida</th>
+                <th className="px-6 py-4 font-semibold text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800 text-gray-200">
+              {asistenciasFiltradas.length === 0 ? (
+                <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No se encontraron registros.</td></tr>
+              ) : (
+                asistenciasFiltradas.map((asistencia) => {
+                  const persona = obtenerDatosPersona(asistencia.persona_id);
+                  return (
+                    <tr key={asistencia.id} className="hover:bg-gray-700/30 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-white">{persona.nombre}</div>
+                        <div className="text-xs text-gray-500">{persona.dni} <span className="mx-1">•</span> {persona.regimen.toString() === '1057' ? 'CAS 1057' : `D.L. ${persona.regimen}`}</div>
+                      </td>
+                      <td className="px-6 py-4 text-emerald-400 font-medium">{formatearFecha(asistencia.fecha_ingreso)}</td>
+                      <td className="px-6 py-4 text-red-400 font-medium">{formatearFecha(asistencia.fecha_salida)}</td>
+
+                      <td className="px-6 py-4 flex gap-2 justify-end">
+                        {!asistencia.fecha_salida ? (
+                          <Button type="button" variant="danger" className="text-xs py-1.5 px-3" onClick={() => handleMarcarSalida(asistencia.id)}>
+                            Marcar Salida
+                          </Button>
+                        ) : (
+                          <span className="text-xs font-semibold text-gray-400 bg-gray-800 px-3 py-1.5 rounded-md border border-gray-700">
+                            Completado
+                          </span>
+                        )}
+
+                        {isAdmin && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => openEditModal(asistencia, persona.nombre)}
+                            className="text-xs py-1.5 px-3 bg-blue-900/20 text-blue-400 hover:bg-blue-900/40 border border-transparent hover:border-blue-800/50 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                            title="Corregir marcación manual"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

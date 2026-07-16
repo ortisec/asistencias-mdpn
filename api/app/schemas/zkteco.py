@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class DispositivoConfig(BaseModel):
-    ip: str = "192.168.1.201"
+    ip: str = "192.168.18.202"
     port: int = 4370
     password: int = 0
 
