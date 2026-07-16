@@ -4,7 +4,7 @@ from app.db.database import engine
 from app.db.base import Base
 
 # 1. Importamos las rutas (endpoints)
-from app.api.v1.endpoints import personas, asistencias, configuraciones, auth, usuarios, planillas, config_nomina
+from app.api.v1.endpoints import personas, asistencias, configuraciones, auth, usuarios, planillas, config_nomina, zkteco
 
 # 2. Importamos los modelos de otra forma para EVITAR colisión de nombres
 import app.models.planilla
@@ -37,3 +37,4 @@ app.include_router(configuraciones.router, prefix="/api/v1/configuraciones", tag
 app.include_router(usuarios.router, prefix="/api/v1/usuarios", tags=["Gestión de Usuarios"])
 app.include_router(planillas.router, prefix="/api/v1/planillas", tags=["Nómina y Planillas"])
 app.include_router(config_nomina.router, prefix="/api/v1/config-nomina", tags=["Configuración Nómina"])
+app.include_router(zkteco.router, prefix="/api/v1/zkteco", tags=["ZKTeco - Huellero"])
