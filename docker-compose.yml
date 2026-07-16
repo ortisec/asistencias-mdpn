@@ -20,11 +20,9 @@ services:
       dockerfile: Dockerfile
     container_name: muni_api
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    network_mode: "host"
     environment:
-      # FastAPI se conecta usando el nombre del contenedor 'db'
-      - DATABASE_URL=postgresql://utimdpn:utimdpn2026@db:5432/asistencia
+      - DATABASE_URL=postgresql://utimdpn:utimdpn2026@localhost:5432/asistencia
     depends_on:
       - db
 
@@ -35,8 +33,7 @@ services:
       dockerfile: Dockerfile
     container_name: muni_frontend
     restart: unless-stopped
-    ports:
-      - "5173:80" # Mapeamos el puerto 80 del contenedor Nginx al 5173 (o 80) de tu VPS
+    network_mode: "host"
     depends_on:
       - api
 
